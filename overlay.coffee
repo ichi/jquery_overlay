@@ -9,10 +9,7 @@ $.pageSize ||= ()->
 
   [win_w, win_h] = switch
     when self.innerHeight
-      w = if document.documentElement.clientWidth
-        document.documentElement.clientWidth
-      else
-        self.innerWidth
+      w = document.documentElement?.clientWidth || self.innerWidth
       [w, self.innerHeight]
     when document.documentElement?.clientHeight
       [document.documentElement.clientWidth, document.documentElement.clientHeight]
