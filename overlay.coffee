@@ -19,7 +19,14 @@ $.pageSize ||= ()->
   page_w = if x_scroll < win_w then x_scroll else win_w
   page_h = if y_scroll < win_h then win_h else y_scroll
 
-  [page_w, page_h, win_w, win_h]
+  {
+    page:
+      width: page_w
+      height: page_h
+    window:
+      width: win_w
+      height: win_h
+  }
 
 
 $.Overlay = class Overlay
@@ -56,8 +63,8 @@ $.Overlay = class Overlay
       id: @id
     ).css(
       display: "none"
-      width: page_size[2] # win_w
-      height: page_size[1] # page_h
+      width: page_size.window.width
+      height: page_size.page.height
       position: "absolute"
       top: 0
       left: 0
@@ -69,8 +76,8 @@ $.Overlay = class Overlay
     $(window).unbind('resize.overlay_resize').bind 'resize.overlay_resize', (ev)->
       page_size = Overlay.page_size = $.pageSize()
       Overlay.all.css(
-        width: page_size[2] # win_w
-        height: page_size[1] # page_h
+        width: page_size.window.width
+        height: page_size.page.height
       )
     if close_on_click = @settings.close_on_click
       @overlay.click (ev)->

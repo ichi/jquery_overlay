@@ -16,12 +16,12 @@
       }
     })(), x_scroll = _ref[0], y_scroll = _ref[1];
     _ref1 = (function() {
-      var _ref1;
+      var _ref1, _ref2;
       switch (false) {
         case !self.innerHeight:
-          w = document.documentElement.clientWidth ? document.documentElement.clientWidth : self.innerWidth;
+          w = ((_ref1 = document.documentElement) != null ? _ref1.clientWidth : void 0) || self.innerWidth;
           return [w, self.innerHeight];
-        case !((_ref1 = document.documentElement) != null ? _ref1.clientHeight : void 0):
+        case !((_ref2 = document.documentElement) != null ? _ref2.clientHeight : void 0):
           return [document.documentElement.clientWidth, document.documentElement.clientHeight];
         case !document.body:
           return [document.body.clientWidth, document.body.clientHeight];
@@ -29,7 +29,16 @@
     })(), win_w = _ref1[0], win_h = _ref1[1];
     page_w = x_scroll < win_w ? x_scroll : win_w;
     page_h = y_scroll < win_h ? win_h : y_scroll;
-    return [page_w, page_h, win_w, win_h];
+    return {
+      page: {
+        width: page_w,
+        height: page_h
+      },
+      window: {
+        width: win_w,
+        height: win_h
+      }
+    };
   });
 
   $.Overlay = Overlay = (function() {
@@ -63,8 +72,8 @@
         id: this.id
       }).css({
         display: "none",
-        width: page_size[2],
-        height: page_size[1],
+        width: page_size.window.width,
+        height: page_size.page.height,
         position: "absolute",
         top: 0,
         left: 0,
@@ -74,8 +83,8 @@
       $(window).unbind('resize.overlay_resize').bind('resize.overlay_resize', function(ev) {
         page_size = Overlay.page_size = $.pageSize();
         return Overlay.all.css({
-          width: page_size[2],
-          height: page_size[1]
+          width: page_size.window.width,
+          height: page_size.page.height
         });
       });
       if (close_on_click = this.settings.close_on_click) {
