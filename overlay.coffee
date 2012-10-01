@@ -81,7 +81,7 @@ $.Overlay = class Overlay
 
     # init
     @overlay.appendTo $('body')
-    Overlay.all.add @overlay
+    Overlay.all = Overlay.all.add @overlay
 
 
   # instance methods ------------------------------

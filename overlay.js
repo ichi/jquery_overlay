@@ -88,7 +88,7 @@
         });
       }
       this.overlay.appendTo($('body'));
-      Overlay.all.add(this.overlay);
+      Overlay.all = Overlay.all.add(this.overlay);
     }
 
     Overlay.prototype.open = function(speed, callback) {
