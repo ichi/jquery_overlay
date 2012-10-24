@@ -1,4 +1,9 @@
-$.pageSize ||= ()->
+$win = $(window)
+$html = $('html')
+$body = $('body')
+
+
+$.getPageSize ||= ()->
   [x_scroll, y_scroll] = switch
     when window.innerHeight && window.scrollMaxY
       [(window.innerWidth + window.scrollMaxX), (window.innerHeight + window.scrollMaxY)]
@@ -53,7 +58,7 @@ $.Overlay = class Overlay
       close_on_click: true # true|falseか、this.closeへの引数（引数が複数なら配列で）。
     }, settings
 
-    page_size = Overlay.page_size = $.pageSize()
+    page_size = Overlay.page_size = $.getPageSize()
 
     @id = @settings.overlay_class + Overlay.uid++
 
@@ -72,13 +77,18 @@ $.Overlay = class Overlay
       opacity: 0
     )
 
-    # bind
-    $(window).unbind('resize.overlay_resize').bind 'resize.overlay_resize', (ev)->
-      page_size = Overlay.page_size = $.pageSize()
+
+    ## bind
+
+    # resize
+    $win.off('resize.overlay_resize').on 'resize.overlay_resize', (ev)->
+      page_size = Overlay.page_size = $.getPageSize()
       Overlay.all.css(
         width: page_size.window.width
         height: page_size.page.height
       )
+
+    # clickで閉じる
     if close_on_click = @settings.close_on_click
       @overlay.click (ev)->
         if close_on_click is true
@@ -86,7 +96,7 @@ $.Overlay = class Overlay
         else
           self.close.apply self, $.makeArray(close_on_click)
 
-    # init
+    ## init
     @overlay.appendTo $('body')
     Overlay.all = Overlay.all.add @overlay
 
