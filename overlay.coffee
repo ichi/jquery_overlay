@@ -87,7 +87,7 @@ $.Overlay = class Overlay
       opacity: 0.5
       fade_speed: 400
       overlay_class: "pageOverlay"
-      close_on_click: true # true | false | Function
+      close_on_click: true # Boolean | Function
     }, settings
 
     page_size = Overlay.page_size = $.getPageSize()
@@ -174,6 +174,6 @@ $.Overlay = class Overlay
 
   _assign_callbacks: (dfd, callbacks = {})->
     $.each callbacks, (name, callback)->
-      dfd[name] callback
+      dfd[name] callback if callback
 
  

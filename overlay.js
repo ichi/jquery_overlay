@@ -211,7 +211,9 @@
         callbacks = {};
       }
       return $.each(callbacks, function(name, callback) {
-        return dfd[name](callback);
+        if (callback) {
+          return dfd[name](callback);
+        }
       });
     };
 
