@@ -59,11 +59,57 @@
       return new Overlay(settings);
     };
 
+    Overlay.getCenterPosition = function() {
+      var height, position_fixed, size, width, width_height, _i, _ref;
+      width_height = 2 <= arguments.length ? __slice.call(arguments, 0, _i = arguments.length - 1) : (_i = 0, []), position_fixed = arguments[_i++];
+      _ref = (function() {
+        switch (width_height.length) {
+          case 0:
+            throw 'not enough arguments';
+            break;
+          case 1:
+            size = width_height[0];
+            if ($.isArray(size)) {
+              return size;
+            } else {
+              return [size, size];
+            }
+            break;
+          default:
+            return width_height;
+        }
+      })(), width = _ref[0], height = _ref[1];
+      return {
+        top: (this.page_size.window.height - height) / 2 + (position_fixed ? 0 : $win.scrollTop()),
+        left: (this.page_size.window.width - width) / 2
+      };
+    };
+
+    Overlay.cssCenterPosition = function() {
+      var $elm, args, position_fixed, width_height, _i;
+      $elm = arguments[0], width_height = 3 <= arguments.length ? __slice.call(arguments, 1, _i = arguments.length - 1) : (_i = 1, []), position_fixed = arguments[_i++];
+      args = width_height.concat([position_fixed]);
+      return $elm.css(this.getCenterPosition.apply(this, args));
+    };
+
     function Overlay(settings) {
-      var close_on_click, page_size, self;
+      var close_on_click, page_size, self,
+        _this = this;
       self = this;
-      this._opening = false;
-      this._opend = false;
+      this.status = {
+        visible: false,
+        opend: false
+      };
+      this.on_open = {
+        always: false,
+        done: false,
+        fail: false
+      };
+      this.on_close = {
+        always: false,
+        done: false,
+        fail: false
+      };
       this.settings = $.extend({
         bg_color: "#000000",
         opacity: 0.5,
@@ -94,65 +140,75 @@
         });
       });
       if (close_on_click = this.settings.close_on_click) {
-        this.overlay.click(function(ev) {
-          if (close_on_click === true) {
-            return self.close();
-          } else {
-            return self.close.apply(self, $.makeArray(close_on_click));
-          }
+        this.overlay.on('click', function(ev) {
+          return _this.close();
         });
       }
       this.overlay.appendTo($('body'));
       Overlay.all = Overlay.all.add(this.overlay);
     }
 
-    Overlay.prototype.open = function(speed, callback) {
-      var self, _ref;
+    Overlay.prototype.open = function(speed) {
+      var self,
+        _this = this;
       self = this;
-      if (!this._opening) {
-        if (!callback && $.isFunction(speed)) {
-          _ref = [null, speed], speed = _ref[0], callback = _ref[1];
-        }
-        this.selects = $('select:visible').hide();
-        this._opening = true;
-        return this.overlay.show().fadeTo(speed || this.settings.fade_speed, this.settings.opacity, function() {
+      this._dfd_open = new $.Deferred();
+      this._assign_callbacks(this._dfd_open, this.on_open);
+      if (!this.status.visible) {
+        this._selects = $('select:visible').hide();
+        this.status.visible = true;
+        this.overlay.show().fadeTo(speed || this.settings.fade_speed, this.settings.opacity, function() {
           var args;
           args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-          this._opend = true;
-          if (callback && $.isFunction(callback)) {
-            return callback.apply(this, args);
-          }
+          _this.status.opend = true;
+          return _this._dfd_open.resolve.apply(_this._dfd_open, args);
         });
       }
+      return this._dfd_open.promise();
     };
 
-    Overlay.prototype.close = function(speed, callback) {
-      var self, _ref;
+    Overlay.prototype.close = function(speed) {
+      var self,
+        _this = this;
       self = this;
-      if (this._opening) {
-        if (!callback && $.isFunction(speed)) {
-          _ref = [null, speed], speed = _ref[0], callback = _ref[1];
+      this._dfd_close = new $.Deferred();
+      this._assign_callbacks(this._dfd_close, this.on_close);
+      if (this.status.visible) {
+        if (!this.status.opend) {
+          this._dfd_open.reject();
         }
-        this._opend = false;
-        return this.overlay.stop().fadeTo(speed || this.settings.fade_speed, 0, function() {
+        this.status.opend = false;
+        this.overlay.stop().fadeTo(speed || this.settings.fade_speed, 0, function() {
           var args;
           args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-          self.overlay.hide();
-          self.selects.show();
-          self._opening = false;
-          if (callback && $.isFunction(callback)) {
-            return callback.apply(this, args);
-          }
+          _this.overlay.hide();
+          _this._selects.show();
+          _this.status.visible = false;
+          return _this._dfd_close.resolve.apply(_this._dfd_close, args);
         });
       }
+      return this._dfd_close.promise();
     };
 
-    Overlay.prototype.opening = function() {
-      return this._opening;
+    Overlay.prototype.getCenterPosition = function() {
+      var args;
+      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      return Overlay.getCenterPosition.apply(Overlay, args);
     };
 
-    Overlay.prototype.opend = function() {
-      return this._opend;
+    Overlay.prototype.cssCenterPosition = function() {
+      var args;
+      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      return Overlay.cssCenterPosition.apply(Overlay, args);
+    };
+
+    Overlay.prototype._assign_callbacks = function(dfd, callbacks) {
+      if (callbacks == null) {
+        callbacks = {};
+      }
+      return $.each(callbacks, function(name, callback) {
+        return dfd[name](callback);
+      });
     };
 
     return Overlay;

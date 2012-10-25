@@ -43,19 +43,51 @@ $.Overlay = class Overlay
   @create = (settings)->
     new Overlay(settings)
 
+  @getCenterPosition: (width_height..., position_fixed)->
+    [width, height] = switch width_height.length
+      when 0
+        throw 'not enough arguments'
+      when 1
+        size = width_height[0]
+        if $.isArray(size)
+          size
+        else
+          [size, size]
+      else
+        width_height
+
+    {
+      top: (@page_size.window.height - height) / 2 + (if position_fixed then 0 else $win.scrollTop())
+      left: (@page_size.window.width - width) / 2
+    }
+
+  @cssCenterPosition: ($elm, width_height..., position_fixed)->
+    args = width_height.concat [position_fixed]
+    $elm.css @getCenterPosition.apply(@, args)
+
   # constructor ------------------------------
   constructor: (settings)->
     self = @
 
-    @_opening = false
-    @_opend = false
+    @status = 
+      visible: false
+      opend: false
+
+    @on_open =
+      always: false
+      done: false
+      fail: false
+    @on_close =
+      always: false
+      done: false
+      fail: false
 
     @settings = $.extend {
       bg_color: "#000000"
       opacity: 0.5
       fade_speed: 400
       overlay_class: "pageOverlay"
-      close_on_click: true # true|falseか、this.closeへの引数（引数が複数なら配列で）。
+      close_on_click: true 
     }, settings
 
     page_size = Overlay.page_size = $.getPageSize()
@@ -90,11 +122,9 @@ $.Overlay = class Overlay
 
     # clickで閉じる
     if close_on_click = @settings.close_on_click
-      @overlay.click (ev)->
-        if close_on_click is true
-          self.close()
-        else
-          self.close.apply self, $.makeArray(close_on_click)
+      @overlay.on 'click', (ev)=>
+        @close()
+          
 
     ## init
     @overlay.appendTo $('body')
@@ -103,34 +133,46 @@ $.Overlay = class Overlay
 
   # instance methods ------------------------------
 
-  open: (speed, callback)->
+  open: (speed)->
     self = @
+    @_dfd_open = new $.Deferred()
+    @_assign_callbacks(@_dfd_open, @on_open)
 
-    unless @_opening
-      [speed, callback] = [null, speed] if !callback && $.isFunction(speed)
-      @selects = $('select:visible').hide()
+    unless @status.visible
+      @_selects = $('select:visible').hide()
 
-      @_opening = true
-      @overlay.show().fadeTo (speed || @settings.fade_speed), @settings.opacity, (args...)->
-        @_opend = true
-        callback.apply(@, args) if callback && $.isFunction(callback)
+      @status.visible = true
+      @overlay.show().fadeTo (speed || @settings.fade_speed), @settings.opacity, (args...)=>
+        @status.opend = true
+        @_dfd_open.resolve.apply(@_dfd_open, args)
 
-  close: (speed, callback)->
+    @_dfd_open.promise()
+
+  close: (speed)->
     self = @
+    @_dfd_close = new $.Deferred()
+    @_assign_callbacks(@_dfd_close, @on_close)
 
-    if @_opening
-      [speed, callback] = [null, speed] if !callback && $.isFunction(speed)
+    if @status.visible
+      @_dfd_open.reject() unless @status.opend
 
-      @_opend = false
-      @overlay.stop().fadeTo (speed || @settings.fade_speed), 0, (args...)->
-        self.overlay.hide()
-        self.selects.show()
-        self._opening = false;
-        callback.apply(@, args) if callback && $.isFunction(callback)
+      @status.opend = false
+      @overlay.stop().fadeTo (speed || @settings.fade_speed), 0, (args...)=>
+        @overlay.hide()
+        @_selects.show()
+        @status.visible = false;
+        @_dfd_close.resolve.apply(@_dfd_close, args)
 
-  opening: ->
-    @_opening
+    @_dfd_close.promise()
 
-  opend: ->
-    @_opend
-  
+  getCenterPosition: (args...)->
+    Overlay.getCenterPosition.apply(Overlay, args)
+
+  cssCenterPosition: (args...)->
+    Overlay.cssCenterPosition.apply(Overlay, args)
+
+  _assign_callbacks: (dfd, callbacks = {})->
+    $.each callbacks, (name, callback)->
+      dfd[name] callback
+
+ 
