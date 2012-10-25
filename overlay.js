@@ -141,7 +141,11 @@
       });
       if (close_on_click = this.settings.close_on_click) {
         this.overlay.on('click', function(ev) {
-          return _this.close();
+          var promise;
+          promise = _this.close();
+          if ($.isFunction(close_on_click)) {
+            return promise.done(close_on_click);
+          }
         });
       }
       this.overlay.appendTo($('body'));

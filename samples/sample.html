@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+  <script type="text/javascript" src="../overlay.js"></script>
+  <script type="text/javascript">
+    $(function(){
+      $('div.sample').each(function(ev){
+        var $section = $(this),
+            $descs = $section.find('.desc'),
+            $scripts = $section.find('script');
+
+        $scripts.each(function(){
+          var $script = $(this),
+              $code = $(document.createElement('pre')).addClass('code').insertAfter($script);
+          $code.text(
+            $script.text()
+              .replace(/^\s/, '')
+              .replace(/^.*?\n/, '')
+              .replace(/\n.*?\n.*?$/, '')
+              .replace(/^ {6}/gm, ''));
+        });
+
+        $descs.each(function(){
+          var $desc = $(this);
+          $desc.html($desc.text().replace(/\n/gm, "<br />"));
+        });
+      });
+    });
+  </script>
+  <style type="text/css">
+    *{
+      margin:0;
+      padding:0;
+    }
+    body{
+      padding:20px;
+      font-size:12px;
+      line-height: 1.4;
+    }
+
+    .sample{
+      margin:0 0 20px;
+      padding:0 0 10px;
+      border-bottom:1px solid #999;
+    }
+    h2, pre, p{
+      margin:0 0 10px;
+    }
+    pre.code{
+      background:#eee;
+      border:1px solid #ccc;
+    }
+  </style>
+
+  <title>sample</title>
+</head>
+<body>
+
+  <div class="sample">
+    <h2>sample1</h2>
+    <p class="desc">デフォルト。
+      表示されたオーバーレイはクリックしたら消える。</p>
+    <script type="text/javascript">
+      $(function(){
+        var ol = $.Overlay.create();
+        $('#button1').on('click', function(ev){
+          ol.open();
+        });
+      });
+    </script>
+    <p><input type="button" value="button1" id="button1" /></p>
+  </div>
+  
+  <div class="sample">
+    <h2>sample2</h2>
+    <p class="desc">オーバーレイの色と透明度変更。
+      表示されたオーバーレイはクリックしたら消える。</p>
+    <script type="text/javascript">
+      $(function(){
+        var ol = $.Overlay.create({
+          bg_color: '#ff0000',
+          opacity: 0.1
+        });
+        $('#button2').on('click', function(ev){
+          ol.open();
+        });
+      });
+    </script>
+    <p><input type="button" value="button2" id="button2" /></p>
+  </div>
+  
+  <div class="sample">
+    <h2>sample3</h2>
+    <p class="desc">フェードイン/アウトの速度変更。
+      表示されたオーバーレイはクリックしたら消える。</p>
+    <script type="text/javascript">
+      $(function(){
+        var ol = $.Overlay.create({
+          fade_speed: 2000
+        });
+        $('#button3').on('click', function(ev){
+          ol.open();
+        });
+      });
+    </script>
+    <p><input type="button" value="button3" id="button3" /></p>
+  </div>
+  
+  <div class="sample">
+    <h2>sample4</h2>
+    <p class="desc">表示時にalertだす。
+      表示されたオーバーレイはクリックしたら消える。</p>
+    <script type="text/javascript">
+      $(function(){
+        var ol = $.Overlay.create();
+
+        ol.on_open = {
+          done: function(){
+            alert('opend');
+          }
+        };
+
+        $('#button4').on('click', function(ev){
+          ol.open();
+        });
+      });
+    </script>
+    <p><input type="button" value="button4" id="button4" /></p>
+
+    <p class="desc">別の書き方。</p>
+    <script type="text/javascript">
+      $(function(){
+        var ol = $.Overlay.create();
+
+        $('#button4_1').on('click', function(ev){
+          var promise = ol.open();
+
+          promise.done(function(){
+            alert('opend_1');
+          })
+        });
+      });
+    </script>
+    <p><input type="button" value="button4_1" id="button4_1" /></p>
+  </div>
+  
+  <div class="sample">
+    <h2>sample5</h2>
+    <p class="desc">閉じた時にalertだす。
+      表示されたオーバーレイはクリックしたら消える。</p>
+    <script type="text/javascript">
+      $(function(){
+        var ol = $.Overlay.create();
+
+        ol.on_close = {
+          done: function(){
+            alert('closed');
+          }
+        };
+
+        $('#button5').on('click', function(ev){
+          ol.open();
+        });
+      });
+    </script>
+    <p><input type="button" value="button5" id="button5" /></p>
+
+    <p class="desc">別の書き方。</p>
+    <script type="text/javascript">
+      $(function(){
+        var ol = $.Overlay.create({
+          close_on_click: function(){
+            alert('closed_1');
+          }
+        });
+
+        $('#button5_1').on('click', function(ev){
+          ol.open();
+        });
+      });
+    </script>
+    <p><input type="button" value="button5_1" id="button5_1" /></p>
+  </div>
+
+  <div class="sample">
+    <h2>sample6</h2>
+    <p class="desc">表示されたオーバーレイはクリックしても消えない。
+      表示されて２秒後に消え始める。</p>
+    <script type="text/javascript">
+      $(function(){
+        var ol = $.Overlay.create({
+          close_on_click: false
+        });
+
+        ol.on_open = {
+          done: function(){
+            setTimeout(function(){
+              ol.close();
+            }, 2000);
+          }
+        };
+
+        $('#button6').on('click', function(ev){
+          ol.open();
+        });
+      });
+    </script>
+    <p><input type="button" value="button6" id="button6" /></p>
+  </div>
+
+</body>
+</html>
+
+

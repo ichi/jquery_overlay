@@ -87,7 +87,7 @@ $.Overlay = class Overlay
       opacity: 0.5
       fade_speed: 400
       overlay_class: "pageOverlay"
-      close_on_click: true 
+      close_on_click: true # true | false | Function
     }, settings
 
     page_size = Overlay.page_size = $.getPageSize()
@@ -123,7 +123,8 @@ $.Overlay = class Overlay
     # clickで閉じる
     if close_on_click = @settings.close_on_click
       @overlay.on 'click', (ev)=>
-        @close()
+        promise = @close()
+        promise.done close_on_click if $.isFunction(close_on_click)
           
 
     ## init
