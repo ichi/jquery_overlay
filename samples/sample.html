@@ -52,6 +52,17 @@
       background:#eee;
       border:1px solid #ccc;
     }
+
+    .box{
+      display: none;
+      position: fixed;
+      z-index:999;
+      width: 300px;
+      height: 200px;
+      padding: 20px;
+      background: #fff;
+      border:1px solid #00f;
+    }
   </style>
 
   <title>sample</title>
@@ -208,6 +219,100 @@
       });
     </script>
     <p><input type="button" value="button6" id="button6" /></p>
+  </div>
+
+  <div class="sample">
+    <h2>sample7</h2>
+    <p class="desc">boxをウィンドウ中央に表示。cancelリンクで閉じる。</p>
+    <pre class="code">
+.box{
+  display: none;
+  position: fixed;
+  z-index:999;
+  width: 300px;
+  height: 200px;
+  padding: 20px;
+  background: #fff;
+  border:1px solid #00f;
+}</pre>
+    <script type="text/javascript">
+      $(function(){
+        var ol = $.Overlay.create({
+          close_on_click: false
+        });
+        var $box = $('#box_7'),
+            box_size = [$box.outerWidth(), $box.outerHeight()];
+
+        ol.on_open = {
+          done: function(){
+            ol.cssCenterPosition($box, box_size, true);
+            $box.show();
+          }
+        };
+        ol.on_close = {
+          done: function(){
+            $box.hide();
+          }
+        }
+
+        $('#button7').on('click', function(ev){
+          ol.open();
+        });
+
+        $box.find('a.cancel').on('click', function(ev){
+          ol.close();
+        });
+      });
+    </script>
+    <p><input type="button" value="button7" id="button7" /></p>
+    <div class="box" id="box_7">
+      <h3>box title</h3>
+      <p>box contents... box contents... box contents... box contents... box contents... </p>
+      <p><a href="#" class="cancel">cancel</a></p>
+    </div>
+
+    <p>windowのresize対応</p>
+    <script type="text/javascript">
+      $(function(){
+        var ol = $.Overlay.create({
+          close_on_click: false
+        });
+        var $box = $('#box_7_1'),
+            box_size = [$box.outerWidth(), $box.outerHeight()];
+
+        ol.on_open = {
+          done: function(){
+            ol.cssCenterPosition($box, box_size, true);
+            $box.show();
+          }
+        };
+        ol.on_close = {
+          done: function(){
+            $box.hide();
+          }
+        }
+
+        $('#button7_1').on('click', function(ev){
+          ol.open();
+        });
+
+        $box.find('a.cancel').on('click', function(ev){
+          ol.close();
+        });
+
+        // resize対応
+        $(window).on('resize', function(ev){
+          ol.cssCenterPosition($box, box_size, true);
+        });
+
+      });
+    </script>
+    <p><input type="button" value="button7_1" id="button7_1" /></p>
+    <div class="box" id="box_7_1">
+      <h3>box title</h3>
+      <p>box contents... box contents... box contents... box contents... box contents... </p>
+      <p><a href="#" class="cancel">cancel</a></p>
+    </div>
   </div>
 
 </body>
